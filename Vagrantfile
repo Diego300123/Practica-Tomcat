@@ -56,9 +56,6 @@ EOF
 # Instalamos el Tomcat admin
 sudo apt install -y tomcat9-admin
 
-# Lo iniciamos
-sudo systemctl enable tomcat9
-
 
 
 # Habilitamos el acceso remoto 
@@ -97,7 +94,37 @@ mvn archetype:generate -DgroupId=org.zaidinvergeles \
   -deployment \
   -DarchetypeArtifactId=maven-archetype-webapp \
   -DinteractiveMode=false
+
+# Configuramos el fichero pom.xml
+  cd sample-webapp
+  sed -i '/<build>/a\
+  <plugins>\
+      <plugin>\
+        <groupId>org.apache.tomcat.maven</groupId>\
+        <artifactId>tomcat7-maven-plugin</artifactId>\
+        <version>2.2</version>\
+        <configuration>\
+          <url>http://localhost:8080/manager/text</url>\
+          <server>Tomcat</server>\
+          <path>/rockpaperscissors</path>\
+        </configuration>\
+      </plugin>\
+    </plugins>' pom.xml
+
+  # Instalamos git
+   sudo apt-get install -y git
+
+  # Clonamos el repositorio del piedra-papel-tijeras
+  git clone https://github.com/cameronmcnz/rock-paper-scissors.git /home/vagrant/rock-paper-scissors
+  cd /home/vagrant/rock-paper-scissors
+  git checkout patch-1
+
+  # Cambiamos el usuario
+  sudo chown -R vagrant:vagrant /home/vagrant/rock-paper-scissors
   
+  # Lo iniciamos
+  sudo systemctl enable tomcat9
+
   #  Reiniciamos tomcat
   sudo systemctl restart tomcat9
 
