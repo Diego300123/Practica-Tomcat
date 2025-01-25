@@ -4,7 +4,7 @@
 
 ### 1. Crear Máquina Virtual
 ```bash
-vagrant init debian/bullseye64
+vagrant init
 ```
 
 ### 2. Configuración del Vagrantfile
