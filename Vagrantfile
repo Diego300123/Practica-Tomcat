@@ -47,15 +47,59 @@ version="1.0">
   <user username="alumno"
     password="1234"
     roles="admin, admin-gui, manager, manager-gui"/>
+  <user username="deploy"
+    password="1234"
+    roles="manager-script"/>
 </tomcat-users>
 EOF
 
 # Instalamos el Tomcat admin
 sudo apt install -y tomcat9-admin
 
-# Lo iniciamos y lo reiniciamos
+# Lo iniciamos
 sudo systemctl enable tomcat9
-sudo systemctl restart tomcat9
+
+
+
+# Habilitamos el acceso remoto 
+    sudo tee /usr/share/tomcat9-admin/host-manager/META-INF/context.xml > /dev/null <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiResourceLocking="false" privileged="true" >
+  <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor"
+                   sameSiteCookies="strict" />
+  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="\d+\.\d+\.\d+\.\d+" />
+  <Manager sessionAttributeValueClassNameFilter="java\.lang\.(?:Boolean|Integer|Long|Number|String)|org\.apache\.catalina\.filters\.CsrfPreventionFilter\$LruCache(?:\$1)?|java\.util\.(?:Linked)?HashMap"/>
+</Context>
+EOF
+
+
+
+
+# Instalamos Maven
+sudo apt-get update && sudo apt-get -y install maven
+
+
+# Configuramos Maven 
+sudo sed -i '/<servers>/a\
+<server>\
+  <id>Tomcat</id>\
+  <username>deploy</username>\
+  <password>1234</password>\
+</server>' /etc/maven/settings.xml
+
+
+# Generamos una aplicación de prueba 
+mkdir -p /home/vagrant/tomcat-project
+cd /home/vagrant/tomcat-project
+mvn archetype:generate -DgroupId=org.zaidinvergeles \
+  -DartifactId=tomcat-war \
+  -deployment \
+  -DarchetypeArtifactId=maven-archetype-webapp \
+  -DinteractiveMode=false
+  
+  #  Reiniciamos tomcat
+  sudo systemctl restart tomcat9
 
       SHELL
 end
